@@ -5,6 +5,7 @@ const Canvas = () => {
   const canvasRef = useRef(null);
   const [canvas, setCanvas] = useState(null);
   const [selectedObject, setSelectedObject] = useState(null);
+  const [color, setColor] = useState(""); // New state for color
 
   useEffect(() => {
     const canvasInstance = new fabric.Canvas(canvasRef.current);
@@ -12,10 +13,12 @@ const Canvas = () => {
 
     canvasInstance.on("selection:created", (event) => {
       setSelectedObject(event.selected[0]);
+      setColor(event.selected[0].fill); // Set initial color
     });
 
     canvasInstance.on("selection:updated", (event) => {
       setSelectedObject(event.selected[0]);
+      setColor(event.selected[0].fill); // Set initial color
     });
 
     canvasInstance.on("selection:cleared", () => {
@@ -34,7 +37,7 @@ const Canvas = () => {
       left: 50,
       width: 200,
       height: 100,
-      fill: "blue",
+      fill: "red",
     });
     canvas.add(rect);
     canvas.renderAll(); // Render the canvas after adding the rectangle
@@ -44,9 +47,9 @@ const Canvas = () => {
     if (!canvas) return; // Ensure canvas is initialized
     const circle = new fabric.Circle({
       radius: 50,
-      fill: "red",
+      fill: "black",
       left: 200,
-      top: 200,
+      top: 180,
     });
     canvas.add(circle);
     canvas.renderAll(); // Render the canvas after adding the circle
@@ -56,8 +59,8 @@ const Canvas = () => {
     if (!canvas) return; // Ensure canvas is initialized
     const text = new fabric.Textbox("Hello World", {
       left: 50,
-      top: 200,
-      fill: "black",
+      top: 180,
+      fill: "blue",
     });
     canvas.add(text);
     canvas.renderAll(); // Render the canvas after adding the text
@@ -95,22 +98,22 @@ const Canvas = () => {
 
   const addPath = () => {
     if (!canvas) return; // Ensure canvas is initialized
-    const path = new fabric.Path("M 0 0 L 150 100 L 170 200 z");
+    const path = new fabric.Path(
+      "M121.32,0L44.58,0C36.67,0,29.5,3.22,24.31,8.41\
+c-5.19,5.19-8.41,12.37-8.41,20.28c0,15.82,12.87,28.69,28.69,28.69c0,0,4.4,\
+0,7.48,0C36.66,72.78,8.4,101.04,8.4,101.04C2.98,106.45,0,113.66,0,121.32\
+c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
+-2.98,20.29-8.4c0,0,28.26-28.25,43.66-43.66c0,3.08,0,7.48,0,7.48c0,15.82,\
+12.87,28.69,28.69,28.69c7.66,0,14.87-2.99,20.29-8.4c5.42-5.42,8.4-12.62,8.4\
+-20.28l0-76.74c0-7.66-2.98-14.87-8.4-20.29C136.19,2.98,128.98,0,121.32,0z"
+    );
     path.set({ left: 70, top: 290, fill: "green" });
     canvas.add(path);
     canvas.renderAll(); // Render the canvas after adding
   };
 
   const renderProperties = (object) => {
-    const properties = [
-      "top",
-      "left",
-      "width",
-      "height",
-      "fill",
-      "radius",
-      "text",
-    ];
+    const properties = ["top", "left", "width", "height", "radius", "text"];
 
     return properties
       .filter((prop) => object[prop] !== undefined)
@@ -122,6 +125,19 @@ const Canvas = () => {
             : object[prop].toString()}
         </p>
       ));
+  };
+
+  const handleColorChange = (event) => {
+    if (selectedObject.type === "image") {
+      alert("Cannot change color of image");
+    } else {
+      const newColor = event.target.value;
+      setColor(newColor); // Update local color state
+      if (selectedObject) {
+        selectedObject.set({ fill: newColor });
+        canvas.renderAll();
+      }
+    }
   };
 
   return (
@@ -139,13 +155,13 @@ const Canvas = () => {
         <button onClick={addImage}>Add Image</button>
         <button onClick={addPath}>Add Path</button>
       </div>
+      {/* <button onClick={HandleChangeColor}>Change Color</button> */}
       {selectedObject && (
         <div className="properties">
-          {/* <button onClick={showDetails}></button> */}
+          {/* <button onClick={renderProperties(selectedObject)}>Show Details</button> */}
           <h3>Type: {selectedObject.type}</h3>
           {renderProperties(selectedObject)}
-
-          {/* <form>
+          <form>
             <div className="fill">
               Fill Color:
               <label>
@@ -153,8 +169,8 @@ const Canvas = () => {
                   type="radio"
                   name="color"
                   value="red"
-                  checked={selectedObject.fill === "red"}
-                  // onChange={handleColorChange}
+                  checked={color === "red"}
+                  onChange={handleColorChange}
                 />
                 Red
               </label>
@@ -163,8 +179,8 @@ const Canvas = () => {
                   type="radio"
                   name="color"
                   value="white"
-                  checked={selectedObject.fill === "white"}
-                  // onChange={handleColorChange}
+                  checked={color === "white"}
+                  onChange={handleColorChange}
                 />
                 White
               </label>
@@ -173,8 +189,8 @@ const Canvas = () => {
                   type="radio"
                   name="color"
                   value="black"
-                  checked={selectedObject.fill === "black"}
-                  // onChange={handleColorChange}
+                  checked={color === "black"}
+                  onChange={handleColorChange}
                 />
                 Black
               </label>
@@ -183,8 +199,8 @@ const Canvas = () => {
                   type="radio"
                   name="color"
                   value="green"
-                  checked={selectedObject.fill === "green"}
-                  // onChange={handleColorChange}
+                  checked={color === "green"}
+                  onChange={handleColorChange}
                 />
                 Green
               </label>
@@ -193,18 +209,13 @@ const Canvas = () => {
                   type="radio"
                   name="color"
                   value="blue"
-                  checked={selectedObject.fill === "blue"}
-                  // onChange={handleColorChange}
+                  checked={color === "blue"}
+                  onChange={handleColorChange}
                 />
                 Blue
               </label>
             </div>
-            top:{" "}
-            <input type="text" placeholder={selectedObject.top.toFixed(2)} />
-            left:{" "}
-            <input type="text" placeholder={selectedObject.left.toFixed(2)} />
-            <button>Change</button>
-          </form> */}
+          </form>
           {/* <p>Top: {selectedObject.top.toFixed(2)}</p>
           <p>Left: {selectedObject.left.toFixed(2)}</p>
           {selectedObject.width && (
