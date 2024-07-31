@@ -1,5 +1,5 @@
 import React from "react";
-import Canvas from "./Canvas";
+import Canvas from "./components/Canvas";
 import "./App.css";
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
             lineHeight: "20px",
           }}
         >
-          Fabric.js demos <b>· Kitchensink</b>
+          Fabric.js <b>· Kitchensink</b>
         </p>
         <Canvas />
       </div>

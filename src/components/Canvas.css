@@ -1,0 +1,47 @@
+/* styles.css */
+.properties {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  width: 430px;
+  /* height: 0%; */
+}
+
+.property {
+  margin-bottom: 15px;
+}
+
+.property label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.property input[type="radio"] {
+  margin-right: 10px;
+}
+
+.property input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.3s ease-in-out;
+}
+
+.property input[type="number"]:focus {
+  border-color: #007bff;
+}
+
+.fill label {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.fill input[type="radio"] {
+  margin-right: 5px;
+}
