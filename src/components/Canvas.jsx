@@ -28,19 +28,6 @@ const Canvas = () => {
     const canvasInstance = new fabric.Canvas(canvasRef.current);
     setCanvas(canvasInstance);
 
-    // canvasInstance.on('object:selected', (e) => {
-    //   const obj = e.target;
-    //   setSelectedObject(obj);
-    //   setProperties({
-    //     color: obj.fill,
-    //     top: obj.top,
-    //     left: obj.left,
-    //     width: obj.width * obj.scaleX,
-    //     height: obj.height * obj.scaleY,
-    //     radius: obj.radius || 0,
-    //   });
-    // });
-
     canvasInstance.on("selection:created", (event) => {
       const obj = event.selected[0];
       setSelectedObject(obj);
@@ -200,6 +187,14 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
     setIsAlertModalOpen(false);
   };
 
+  const handleDelete = () => {
+    if (selectedObject) {
+      canvas.remove(selectedObject);
+      canvas.renderAll();
+      setSelectedObject(null); // Clear the selection
+    }
+  };
+
   return (
     <div>
       <AlertModal
@@ -220,6 +215,7 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
           <button onClick={addTextBox}>Add Text</button>
           <button onClick={addPath}>Add Path</button>
           <button onClick={addImage}>Add Image</button>
+          <button onClick={handleDelete}>Delete Selected</button>
         </div>
         {selectedObject && (
           <div className="properties">
