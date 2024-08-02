@@ -29,30 +29,42 @@ const Canvas = () => {
     window.canvas = canvasInstance;
     setCanvas(canvasInstance);
 
-    canvasInstance.on("selection:created", (event) => {
-      const obj = event.selected[0];
-      setSelectedObject(obj);
+    const updateProperties = (obj) => {
       setProperties({
         color: obj.fill ?? "red",
         top: obj.top ?? 0,
         left: obj.left ?? 0,
-        width: obj.width * obj.scaleX ?? 0,
-        height: obj.height * obj.scaleY ?? 0,
+        width: obj.width * (obj.scaleX ?? 1) ?? 0,
+        height: obj.height * (obj.scaleY ?? 1) ?? 0,
         radius: obj.radius ?? 0,
       });
+    };
+
+    canvasInstance.on("selection:created", (event) => {
+      const obj = event.selected[0];
+      setSelectedObject(obj);
+      updateProperties(obj);
     });
 
     canvasInstance.on("selection:updated", (event) => {
       const obj = event.selected[0];
       setSelectedObject(obj);
-      setProperties({
-        color: obj.fill ?? "red",
-        top: obj.top ?? 0,
-        left: obj.left ?? 0,
-        width: obj.width * obj.scaleX ?? 0,
-        height: obj.height * obj.scaleY ?? 0,
-        radius: obj.radius ?? 0,
-      });
+      updateProperties(obj);
+    });
+
+    canvasInstance.on("object:moving", (event) => {
+      const obj = event.target;
+      updateProperties(obj);
+    });
+
+    // canvasInstance.on("object:scaling", (event) => {
+    //   const obj = event.target;
+    //   updateProperties(obj);
+    // });
+
+    canvasInstance.on("object:modified", (event) => {
+      const obj = event.target;
+      updateProperties(obj);
     });
 
     canvasInstance.on("selection:cleared", () => {
@@ -168,10 +180,12 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
         : property === "width" || property === "height"
         ? parseFloat(event.target.value) || 50
         : parseFloat(event.target.value) || 0; // Default to 0 if NaN
+
     setProperties((prevProperties) => ({
       ...prevProperties,
       [property]: value,
     }));
+
     if (selectedObject) {
       if (property === "color") {
         if (selectedObject.type === "image") {
@@ -179,11 +193,22 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
         } else {
           selectedObject.set({ fill: value });
         }
+      } else if (property === "width" || property === "height") {
+        const scaleXX = property === "width" ? value / selectedObject.width : 0;
+        const scaleYY =
+          property === "height" ? value / selectedObject.height : 0;
+
+        selectedObject.set({
+          scaleX: property === "width" ? scaleXX : selectedObject.scaleX,
+          scaleY: property === "height" ? scaleYY : selectedObject.scaleY,
+        });
+      } else if (property === "radius" && selectedObject.type === "circle") {
+        selectedObject.set({ radius: value });
       } else {
         selectedObject.set({ [property]: value });
-        selectedObject.setCoords();
       }
-      canvas.renderAll();
+      selectedObject.setCoords(); // Update the object's coordinates
+      canvas.renderAll(); // Re-render the canvas to show the updates
     }
   };
 
@@ -314,6 +339,7 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
                   />
                 </label>
               </div>
+
               <div className="property">
                 <label>
                   Radius: {""}
@@ -322,6 +348,7 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
                     min={0}
                     value={properties.radius}
                     onChange={(e) => handlePropertyChange(e, "radius")}
+                    disabled={selectedObject.type !== "circle"}
                   />{" "}
                   (Only applicable for circles)
                 </label>
