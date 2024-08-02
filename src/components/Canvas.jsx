@@ -165,6 +165,8 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
     const value =
       property === "color"
         ? event.target.value
+        : property === "left" || property === "top"
+        ? parseFloat(event.target.value) || 0
         : parseFloat(event.target.value) || 50; // Default to 0 if NaN
     setProperties((prevProperties) => ({
       ...prevProperties,
