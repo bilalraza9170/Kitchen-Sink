@@ -46,10 +46,7 @@ const Canvas = () => {
       if (activeObjects.length > 1) {
         canvasInstance.discardActiveObject();
 
-        const group = new fabric.Group(activeObjects, {
-          left: activeObjects[0].left,
-          top: activeObjects[0].top,
-        });
+        const group = new fabric.Group(activeObjects);
 
         canvasInstance.add(group);
         canvasInstance.setActiveObject(group);
