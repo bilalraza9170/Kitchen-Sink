@@ -36,7 +36,7 @@ const Canvas = () => {
         left: obj.left ?? 0,
         width: obj.width * (obj.scaleX ?? 1) ?? 0,
         height: obj.height * (obj.scaleY ?? 1) ?? 0,
-        radius: obj.radius ?? 0,
+        radius: obj.radius * obj.scaleX ?? 0,
       });
     };
 
@@ -184,9 +184,9 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
     const value =
       property === "color"
         ? event.target.value
-        : property === "width" || property === "height"
-        ? parseFloat(event.target.value) || 50
-        : parseFloat(event.target.value) || 0; // Default to 0 if NaN
+        : property === "left" || property === "top"
+        ? parseFloat(event.target.value) || 0
+        : parseFloat(event.target.value) || 20; // Default to 0 if NaN
 
     setProperties((prevProperties) => ({
       ...prevProperties,
@@ -201,16 +201,23 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
           selectedObject.set({ fill: value });
         }
       } else if (property === "width" || property === "height") {
-        const scaleXX = property === "width" ? value / selectedObject.width : 0;
-        const scaleYY =
-          property === "height" ? value / selectedObject.height : 0;
+        const scaleX =
+          property === "width"
+            ? value / selectedObject.width
+            : selectedObject.scaleX;
+        const scaleY =
+          property === "height"
+            ? value / selectedObject.height
+            : selectedObject.scaleY;
 
         selectedObject.set({
-          scaleX: property === "width" ? scaleXX : selectedObject.scaleX,
-          scaleY: property === "height" ? scaleYY : selectedObject.scaleY,
+          scaleX: scaleX,
+          scaleY: scaleY,
         });
       } else if (property === "radius" && selectedObject.type === "circle") {
-        selectedObject.set({ radius: value });
+        selectedObject.set({
+          radius: value / selectedObject.scaleX,
+        });
       } else {
         selectedObject.set({ [property]: value });
       }
