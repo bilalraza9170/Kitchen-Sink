@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as fabric from "fabric"; // Correct import for fabric
+import * as fabric from "fabric";
 import AlertModal from "./AlertModal";
 import "./Canvas.css";
 
@@ -40,27 +40,37 @@ const Canvas = () => {
       });
     };
 
-    canvasInstance.on("selection:created", (event) => {
-      const obj = event.selected[0];
-      setSelectedObject(obj);
-      updateProperties(obj);
-    });
+    const autoGroupSelectedObjects = () => {
+      const activeObjects = canvasInstance.getActiveObjects();
 
-    canvasInstance.on("selection:updated", (event) => {
-      const obj = event.selected[0];
+      if (activeObjects.length > 1) {
+        canvasInstance.discardActiveObject();
+
+        const group = new fabric.Group(activeObjects, {
+          left: activeObjects[0].left,
+          top: activeObjects[0].top,
+        });
+
+        canvasInstance.add(group);
+        canvasInstance.setActiveObject(group);
+        canvasInstance.renderAll();
+      }
+    };
+
+    const handleSelectionChange = () => {
+      autoGroupSelectedObjects();
+      const obj = canvasInstance.getActiveObject();
       setSelectedObject(obj);
       updateProperties(obj);
-    });
+    };
+
+    canvasInstance.on("selection:created", handleSelectionChange);
+    canvasInstance.on("selection:updated", handleSelectionChange);
 
     canvasInstance.on("object:moving", (event) => {
       const obj = event.target;
       updateProperties(obj);
     });
-
-    // canvasInstance.on("object:scaling", (event) => {
-    //   const obj = event.target;
-    //   updateProperties(obj);
-    // });
 
     canvasInstance.on("object:modified", (event) => {
       const obj = event.target;
@@ -96,11 +106,11 @@ const Canvas = () => {
     });
     setIsFirstClick((prev) => ({ ...prev, rectangleC: false }));
     canvas.add(rect);
-    canvas.renderAll(); // Render the canvas after adding the rectangle
+    canvas.renderAll();
   };
 
   const addCircle = () => {
-    if (!canvas) return; // Ensure canvas is initialized
+    if (!canvas) return;
     console.log(isFirstClick.circleC);
     const circle = new fabric.Circle({
       radius: 50,
@@ -112,11 +122,11 @@ const Canvas = () => {
     });
     setIsFirstClick((prev) => ({ ...prev, circleC: false }));
     canvas.add(circle);
-    canvas.renderAll(); // Render the canvas after adding the circle
+    canvas.renderAll();
   };
 
   const addTextBox = () => {
-    if (!canvas) return; // Ensure canvas is initialized
+    if (!canvas) return;
     console.log(isFirstClick.textBoxC);
     const text = new fabric.Textbox("Fabric.js is awesome!!!!", {
       left: isFirstClick.textBoxC ? 50 : Math.random() * (1000 - 400),
@@ -127,11 +137,11 @@ const Canvas = () => {
     });
     setIsFirstClick((prev) => ({ ...prev, textBoxC: false }));
     canvas.add(text);
-    canvas.renderAll(); // Render the canvas after adding the text
+    canvas.renderAll();
   };
 
   const addPath = () => {
-    if (!canvas) return; // Ensure canvas is initialized
+    if (!canvas) return;
     console.log(isFirstClick.pathC);
     const path = new fabric.Path(
       "M121.32,0L44.58,0C36.67,0,29.5,3.22,24.31,8.41\
@@ -151,11 +161,11 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
     });
     setIsFirstClick((prev) => ({ ...prev, pathC: false }));
     canvas.add(path);
-    canvas.renderAll(); // Render the canvas after adding
+    canvas.renderAll();
   };
 
   const addImage = () => {
-    if (!canvas) return; // Ensure canvas is initialized
+    if (!canvas) return;
     console.log(isFirstClick.imageC);
     const imgElement = new Image();
     imgElement.src =
@@ -169,7 +179,7 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
       });
       setIsFirstClick((prev) => ({ ...prev, imageC: false }));
       canvas.add(imgInstance);
-      canvas.renderAll(); // Render the canvas after adding the image
+      canvas.renderAll();
     };
   };
 
@@ -208,7 +218,7 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
         selectedObject.set({ [property]: value });
       }
       selectedObject.setCoords(); // Update the object's coordinates
-      canvas.renderAll(); // Re-render the canvas to show the updates
+      canvas.renderAll();
     }
   };
 
@@ -218,7 +228,23 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
 
   const handleDelete = () => {
     if (selectedObject) {
-      canvas.remove(selectedObject);
+      console.log("Selected Object Type:", selectedObject.type);
+
+      if (selectedObject.type === "group") {
+        console.log("Group objects:", selectedObject.getObjects());
+
+        selectedObject.getObjects().forEach((obj) => {
+          console.log("Removing object from group:", obj);
+          canvas.remove(obj);
+        });
+
+        console.log("Removing group:", selectedObject);
+        canvas.remove(selectedObject); // Remove the group itself
+      } else {
+        console.log("Removing single object:", selectedObject);
+        canvas.remove(selectedObject);
+      }
+
       canvas.renderAll();
       setSelectedObject(null); // Clear the selection
     }
@@ -231,20 +257,22 @@ c0,7.66,2.98,14.87,8.4,20.29l0,0c5.42,5.42,12.62,8.4,20.28,8.4c7.66,0,14.87\
         onClose={closeAlertModal}
         message="Cannot change color of image"
       />
-      <div style={{ display: "flex" }}>
-        <div style={{ padding: "10px" }}>
+      <div className="container" style={{ display: "flex" }}>
+        <div className="canvas-wrapper" style={{ padding: "10px" }}>
           <canvas
             ref={canvasRef}
             width={1000}
             height={500}
             style={{ border: "1px solid black" }}
           />
-          <button onClick={addRectangle}>Add Rectangle</button>
-          <button onClick={addCircle}>Add Circle</button>
-          <button onClick={addTextBox}>Add Text</button>
-          <button onClick={addPath}>Add Path</button>
-          <button onClick={addImage}>Add Image</button>
-          <button onClick={handleDelete}>Delete Selected</button>
+          <div className="canvas-buttons">
+            <button onClick={addRectangle}>Add Rectangle</button>
+            <button onClick={addCircle}>Add Circle</button>
+            <button onClick={addTextBox}>Add Text</button>
+            <button onClick={addPath}>Add Path</button>
+            <button onClick={addImage}>Add Image</button>
+            <button onClick={handleDelete}>Delete Selected</button>
+          </div>
         </div>
         {selectedObject && (
           <div className="properties">
