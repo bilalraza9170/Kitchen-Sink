@@ -30,13 +30,14 @@ const Canvas = () => {
     setCanvas(canvasInstance);
 
     const updateProperties = (obj) => {
+      const isUniformScaling = obj.scaleX === obj.scaleY;
       setProperties({
         color: obj.fill ?? "red",
         top: obj.top ?? 0,
         left: obj.left ?? 0,
         width: obj.width * (obj.scaleX ?? 1) ?? 0,
         height: obj.height * (obj.scaleY ?? 1) ?? 0,
-        radius: obj.radius * obj.scaleX ?? 0,
+        radius: isUniformScaling ? (obj.radius ?? 0) * (obj.scaleX ?? 1) : 0,
       });
     };
 
